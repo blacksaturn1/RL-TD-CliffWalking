@@ -1,6 +1,7 @@
 import random
-from helper import Helper
 import numpy as np
+from SarsaAlgorithm import Sarsa
+
 
 '''
 In this programing exercise we are going to solve the Cliff Walking problem explained in Example 6.6 page 132 of the textbook.
@@ -19,7 +20,7 @@ b) Start location is 3,0
 c) Goal location is 3,11
 d) 1 means occupied and 0 means free
 '''
-class Sarsa:
+class QLearning(Sarsa):
 
     def __init__(self, world_maze,max_episodes=1,alpha=.5,epsilon=0.1,gamma=1,start= (3,0), goal=(3,11),rewards=[-1,-100],actions=(0,1,2,3), reduceEpsilon=True):
         '''
