@@ -27,8 +27,8 @@ def main():
         qAlgo = QLearning(W,max_episodes=1000,gamma=1,alpha=.50,epsilon=0.1,reduceEpsilon=True)
         draw=Helper()
         fig, ax = draw.plot_matrix(sarsaAlgo.rewards_matrix,printValues=True,fontSize=5,title="Q-Learning-Path")
-        sarsaAlgo.run()
-        draw.plot_max_quivers(ax,sarsaAlgo.getPolicyQuivers())
+        qAlgo.run()
+        draw.plot_max_quivers(ax,qAlgo.getPolicyQuivers())
         title = "Q-Learning"
         fig.savefig(title+"-Path.png")
 
