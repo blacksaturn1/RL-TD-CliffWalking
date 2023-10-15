@@ -23,40 +23,47 @@ d) 1 means occupied and 0 means free
 class QLearning(Sarsa):
 
     def run(self,debug_state=-1):
-        
+        rewards_sum = []
         i=0
         while i< self.max_episodes:
+            episodeRewardSum = 0
             i += 1
 
             if self.reduceEpsilon and i>100 and i%100==0:
                 self.epsilon = self.epsilon * .9
-                print("Epsilon reduced to: ",self.epsilon)
+                print("Epsilon reduced to: ", self.epsilon)
 
             # Start in start state
             currentState = self.flatten(self.start[0],self.start[1])
 
-            # Choose A from S using policy derived from Q (e.g., "e-greedy)
-            currentAction = self.getActionFromStateDerivedQ(currentState)
-
             # Loop for each step of episode:
                 # Take action A, observe R, S0
                 # Choose A0 from S0 using policy derived from Q (e.g., "-greedy)
-                # Q(S,A)⇤Q(S,A) + [R + gamma*Q(S1,A1) − Q(S,A)]
+                # Q(S,A)⇤Q(S,A) + alpha*[R + gamma*argmax[Q(S1,A1)] − Q(S,A)]
                 # S⇤S1; A⇤A1;
             # until S is terminal
             while not self.isGoal(currentState):
+
+                # Choose A from S using policy derived from Q (e.g., "e-greedy)
+                currentAction = self.getActionFromStateDerivedQ(currentState)
+
+                # Take action A, observe R, S'
                 state1 = self.getNextState(currentState,currentAction)
                 reward1 = self.rewards_matrix.flat[state1]
-                
-                action1 = self.getActionFromStateDerivedQ(state1)
-                self.Q[currentState,currentAction] = self.Q[currentState,currentAction] +self.alpha*(reward1 + self.gamma*self.Q[state1,action1] - self.Q[currentState,currentAction])
+
+                greedyAction = np.argmax(self.Q[state1])
+
+                self.Q[currentState,currentAction] = self.Q[currentState,currentAction] + self.alpha*(reward1 + self.gamma*self.Q[state1, greedyAction] - self.Q[currentState,currentAction])
                 
                 if self.isObstacle(state1):
                     state1 = self.flatten(self.start[0],self.start[1])
                 
                 currentState = state1
-                currentAction = action1
+                episodeRewardSum += reward1
 
+            rewards_sum.append(episodeRewardSum)
+
+        return rewards_sum
         print("Completed run() on episodes")
        
 
