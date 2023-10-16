@@ -29,8 +29,8 @@ class QLearning(Sarsa):
             episodeRewardSum = 0
             i += 1
 
-            if self.reduceEpsilon and i>100 and i%100==0:
-                self.epsilon = self.epsilon * .9
+            if self.reduceEpsilon and i>2 and i%2==0:
+                self.epsilon = self.epsilon * .75
                 print("Epsilon reduced to: ", self.epsilon)
 
             # Start in start state

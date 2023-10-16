@@ -21,13 +21,14 @@ d) 1 means occupied and 0 means free
 '''
 class Sarsa:
 
-    def __init__(self, world_maze,max_episodes=1,alpha=.5,epsilon=0.1,gamma=1,start= (3,0), goal=(3,11),rewards=[-1,-100],actions=(0,1,2,3), reduceEpsilon=True):
+    def __init__(self, world_maze,max_episodes=1,alpha=.5,epsilon=0.1,gamma=1,start= (3,0), goal=(3,11),
+                 rewards=[-1,-100],actions=(0,1,2,3), reduceEpsilon=True):
         '''
         rewards = [goal, space, obstacle]
         '''
         self.max_episodes=max_episodes
         self.reduceEpsilon=reduceEpsilon
-        self.iterations=0
+        # self.iterations=0
         self.world=np.asarray(world_maze)
         self.actions = actions #(0,1,2,3) up, right, down, left
         self.N_States = len(self.world[0])*len(self.world)
@@ -35,7 +36,7 @@ class Sarsa:
         self.rewards_matrix = np.zeros( self.world.shape )
         self.rewards=rewards
         self.alpha = alpha
-        self.epsilon = 0.1
+        self.epsilon = epsilon
         self.gamma=gamma
         self.start = start
         self.goal = goal
@@ -186,7 +187,7 @@ class Sarsa:
     def getActionFromStateDerivedQ(self,state):
         epsilonProbability=random.random()
         action=-1
-        if epsilonProbability<=self.epsilon:
+        if epsilonProbability<self.epsilon:
             action = self.getRandomAction()
         else:
             action=np.argmax(self.Q[state,:])
@@ -201,8 +202,8 @@ class Sarsa:
         while i< self.max_episodes:
             i += 1
             totalReward = 0
-            if self.reduceEpsilon and i>100 and i%100==0:
-                self.epsilon = self.epsilon * .9
+            if self.reduceEpsilon:# and i>2 and i%2==0:
+                self.epsilon = self.epsilon * .1
                 print("Epsilon reduced to: ",self.epsilon)
 
             # Start in start state
@@ -212,10 +213,10 @@ class Sarsa:
             # Loop for each step of episode:
                 # Take action A, observe R, S0
                 # Choose A0 from S0 using policy derived from Q (e.g., "e-greedy)
-                # Q(S,A)⇤Q(S,A) + [R + gamma*Q(S1,A1) − Q(S,A)]
+                # Q(S,A)⇤Q(S,A) + alpha*[R + gamma*Q(S1,A1) − Q(S,A)]
                 # S⇤S1; A⇤A1;
             # until S is terminal
-            max_steps=200
+            max_steps=1000
             steps=0
             while not self.isGoal(currentState) and steps<=max_steps:
                 currentAction = self.getActionFromStateDerivedQ(currentState)
@@ -235,18 +236,6 @@ class Sarsa:
         print("Completed run() on episodes")
         return rewardsPerEpisode
        
-
-    def plot_value_function_convergence(self,delta_list):
-      x = np.arange(0.0, len(delta_list), 1)
-      fig, ax = plt.subplots()
-      ax.plot(x, delta_list)
-      ax.set(xlabel='iterations', ylabel='delta',
-          title='Convergence of Evaluate Value Function')
-      ax.grid()
-      fig.savefig("test.png")
-      plt.show()
-    
-    
 
     def getPolicyQuivers(self):
         x_pos=[]
