@@ -42,7 +42,7 @@ class Sarsa:
         self.simple=1 # Flag for only 4 actions
         self.initRewardMatrix()
         self.initQ()
-    
+        np.random.seed(99)
         
     def checkQ(self):
         print(self.Q[0:])
@@ -104,7 +104,7 @@ class Sarsa:
         '''
         Initialize Q(s, a), for all s in S+, a in A(s), arbitrarily except that Q(terminal , ·) = 0
         '''
-        self.Q = 1*np.ones( (self.N_States,len(self.actions) ))
+        self.Q = np.zeros((self.N_States,len(self.actions) ))
         # Set goal to 0
         flatGoalState = self.flatten(self.goal[0],self.goal[1])
         self.Q[flatGoalState,:]=0
@@ -189,16 +189,18 @@ class Sarsa:
         if epsilonProbability<=self.epsilon:
             action = self.getRandomAction()
         else:
-            action=np.random.choice(np.flatnonzero(self.Q[state,:] == self.Q[state,:].max())) # breaks ties randomly
+            action=np.argmax(self.Q[state,:])
+            #action=np.random.choice(np.flatnonzero(self.Q[state,:] == self.Q[state,:].max())) # breaks ties randomly
         return action
 
 
     def run(self,debug_state=-1):
         
         i=0
+        rewardsPerEpisode = []
         while i< self.max_episodes:
             i += 1
-
+            totalReward = 0
             if self.reduceEpsilon and i>100 and i%100==0:
                 self.epsilon = self.epsilon * .9
                 print("Epsilon reduced to: ",self.epsilon)
@@ -207,28 +209,31 @@ class Sarsa:
             currentState = self.flatten(self.start[0],self.start[1])
 
             # Choose A from S using policy derived from Q (e.g., "e-greedy)
-            currentAction = self.getActionFromStateDerivedQ(currentState)
-
             # Loop for each step of episode:
                 # Take action A, observe R, S0
-                # Choose A0 from S0 using policy derived from Q (e.g., "-greedy)
+                # Choose A0 from S0 using policy derived from Q (e.g., "e-greedy)
                 # Q(S,A)⇤Q(S,A) + [R + gamma*Q(S1,A1) − Q(S,A)]
                 # S⇤S1; A⇤A1;
             # until S is terminal
-            while not self.isGoal(currentState):
+            max_steps=200
+            steps=0
+            while not self.isGoal(currentState) and steps<=max_steps:
+                currentAction = self.getActionFromStateDerivedQ(currentState)
+                steps+=1
                 state1 = self.getNextState(currentState,currentAction)
                 reward1 = self.rewards_matrix.flat[state1]
-                
+                totalReward+=reward1
                 action1 = self.getActionFromStateDerivedQ(state1)
                 self.Q[currentState,currentAction] = self.Q[currentState,currentAction] +self.alpha*(reward1 + self.gamma*self.Q[state1,action1] - self.Q[currentState,currentAction])
-                
                 if self.isObstacle(state1):
                     state1 = self.flatten(self.start[0],self.start[1])
-                
+                    #action1 = self.getActionFromStateDerivedQ(state1)
                 currentState = state1
-                currentAction = action1
+                #currentAction = action1
+            rewardsPerEpisode.append(totalReward)
 
         print("Completed run() on episodes")
+        return rewardsPerEpisode
        
 
     def plot_value_function_convergence(self,delta_list):
